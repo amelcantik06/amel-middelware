@@ -7,11 +7,12 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    // 1. Menampilkan Semua Data
+    // // 1. Menampilkan Semua Data
     public function index()
     {
-        $products = Product::all();
-        return view('products.index', compact('products'));
+    $products = Product::all();
+
+        return view('welcome', compact('products'));
     }
 
     // 2. Menampilkan Form Tambah

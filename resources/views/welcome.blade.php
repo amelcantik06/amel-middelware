@@ -213,7 +213,7 @@
         }
 
         .badge-stock.empty {
-            background-color: #fef2f2;
+            background-color: #9f14e5;
             color: #991b1b;
         }
 
@@ -274,40 +274,127 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($products as $product)
-                        <tr>
-                            <td><span style="color: var(--text-muted); font-weight: 500;">#{{ $product->id }}</span></td>
-                            <td>
-                                <div class="product-name">{{ $product->name }}</div>
-                                <div class="product-desc" title="{{ $product->description }}">{{ $product->description ?? 'Tidak ada keterangan produk.' }}</div>
-                            </td>
-                            <td>
-                                <span class="badge-price">Rp {{ number_format($product->price, 0, ',', '.') }}</span>
-                            </td>
-                            <td>
-                                @if($product->stock > 0)
-                                    <span class="badge-stock">🟢 {{ $product->stock }} Tersedia</span>
-                                @else
-                                    <span class="badge-stock empty">🔴 Habis</span>
-                                @endif
-                            </td>
-                            <td style="text-align: right;">
-                                <div style="display: inline-flex; align-items: center;">
-                                    <a href="{{ route('products.edit', $product->id) }}" class="btn btn-edit">Ubah</a>
-                                    
-                                    <form action="{{ route('products.destroy', $product->id) }}" method="POST" onsubmit="return confirm('Hapus data produk ini permanen?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-delete">Hapus</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5">
-                                <div class="empty-state">
-                                    <!-- Icon Box Empty -->
-                                    <svg xmlns="http://w3.org" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 Carlsbad 11.25h4.5m10.5-4.5 1.008-3.214a1.25 1.25 0 0 0-1.213-1.633H4.954a1.25 1.25 0 0 0-1.213 1.633L4.75 7.5h14.5Z" />
-                                    </svg>
+                   @forelse($products as $product)
+    <tr>
+        {{-- ID Produk --}}
+        <td>
+            <span style="color: var(--text-muted); font-weight: 500;">
+                #{{ $product->id }}
+            </span>
+        </td>
+
+        {{-- Informasi Produk --}}
+        <td>
+            <div class="product-name">
+                {{ $product->name }}
+            </div>
+
+            <div
+                class="product-desc"
+                title="{{ $product->description }}"
+            >
+                {{ $product->description ?: 'Tidak ada keterangan produk.' }}
+            </div>
+        </td>
+
+        {{-- Harga --}}
+        <td>
+            <span class="badge-price">
+                Rp {{ number_format($product->price, 0, ',', '.') }}
+            </span>
+        </td>
+
+        {{-- Stok --}}
+        <td>
+            @if($product->stock > 0)
+                <span class="badge-stock">
+                    {{ $product->stock }} Tersedia
+                </span>
+            @else
+                <span class="badge-stock empty">
+                    🔴 Habis
+                </span>
+            @endif
+        </td>
+
+        {{-- Aksi --}}
+        <td style="text-align: right;">
+            <div style="display: inline-flex; align-items: center; gap: 8px;">
+
+                {{-- Tombol Edit --}}
+                <a
+                    href="{{ route('products.edit', $product->id) }}"
+                    class="btn btn-edit"
+                >
+                    ✏️ Ubah
+                </a>
+
+                {{-- Tombol Hapus --}}
+                <form
+                    action="{{ route('products.destroy', $product->id) }}"
+                    method="POST"
+                    onsubmit="return confirm('Hapus data produk ini permanen?')"
+                >
+                    @csrf
+                    @method('DELETE')
+
+                    <button
+                        type="submit"
+                        class="btn btn-delete"
+                    >
+                        🗑️ Hapus
+                    </button>
+                </form>
+
+            </div>
+        </td>
+    </tr>
+
+@empty
+
+    {{-- Jika produk belum ada --}}
+    <tr>
+        <td colspan="5">
+            <div class="empty-state">
+
+                <!-- Icon Box Empty -->
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    style="width: 48px; height: 48px; margin-bottom: 16px;"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.245 2.118H6.62a2.25 2.25 0 01-2.245-2.118L3.75 7.5m16.5 0h-16.5m14.25 0l-1.5-3.375A2.25 2.25 0 0014.945 3h-5.89a2.25 2.25 0 00-2.055 1.125L5.5 7.5m5.25 4.5v4.5m3-4.5v4.5"
+                    />
+                </svg>
+
+                <h3>Belum Ada Produk</h3>
+
+                <p>
+                    Belum ada data produk yang tersedia.
+                </p>
+
+                <a
+                    href="{{ route('products.create') }}"
+                    class="btn btn-add"
+                    style="margin-top: 15px;"
+                >
+                    ➕ Tambah Produk Baru
+                </a>
+
+            </div>
+        </td>
+    </tr>
+
+@endforelse
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
