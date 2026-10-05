@@ -117,6 +117,12 @@
             color: #7f1d1d;
         }
 
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         /* Alert Toast */
         .alert {
             padding: 16px 20px;
@@ -253,10 +259,20 @@
             <h1>Dashboard Minimarket</h1>
             <p>Kelola inventaris data produk toko Anda dalam satu panel instan.</p>
         </div>
-        <div>
-            <a href="{{ route('products.create') }}" class="btn btn-add">
-                <span style="margin-right: 8px; font-size: 16px;">+</span> Tambah Produk Baru
-            </a>
+        <div class="header-actions">
+            @auth
+                @if(auth()->user()->role === 'admin')
+                    <a href="{{ route('products.create') }}" class="btn btn-add">
+                        <span style="margin-right: 8px; font-size: 16px;">+</span> Tambah Produk Baru
+                    </a>
+                @endif
+                <form action="{{ route('logout') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn btn-edit">Keluar</button>
+                </form>
+            @else
+                <a href="{{ route('login') }}" class="btn btn-edit">Masuk</a>
+            @endauth
         </div>
     </header>
 
@@ -270,7 +286,11 @@
                         <th>Informasi Produk</th>
                         <th>Harga Satuan</th>
                         <th>Status Stok</th>
-                        <th style="width: 200px; text-align: right;">Aksi Panel</th>
+                        @auth
+                            @if(auth()->user()->role === 'admin')
+                                <th style="width: 200px; text-align: right;">Aksi Panel</th>
+                            @endif
+                        @endauth
                     </tr>
                 </thead>
                 <tbody>
@@ -318,6 +338,8 @@
         </td>
 
         {{-- Aksi --}}
+        @auth
+        @if(auth()->user()->role === 'admin')
         <td style="text-align: right;">
             <div style="display: inline-flex; align-items: center; gap: 8px;">
 
@@ -348,13 +370,15 @@
 
             </div>
         </td>
+        @endif
+        @endauth
     </tr>
 
 @empty
 
     {{-- Jika produk belum ada --}}
     <tr>
-        <td colspan="5">
+        <td colspan="{{ auth()->check() && auth()->user()->role === 'admin' ? 5 : 4 }}">
             <div class="empty-state">
 
                 <!-- Icon Box Empty -->
@@ -379,13 +403,17 @@
                     Belum ada data produk yang tersedia.
                 </p>
 
-                <a
-                    href="{{ route('products.create') }}"
-                    class="btn btn-add"
-                    style="margin-top: 15px;"
-                >
-                    ➕ Tambah Produk Baru
-                </a>
+                @auth
+                    @if(auth()->user()->role === 'admin')
+                        <a
+                            href="{{ route('products.create') }}"
+                            class="btn btn-add"
+                            style="margin-top: 15px;"
+                        >
+                            ➕ Tambah Produk Baru
+                        </a>
+                    @endif
+                @endauth
 
             </div>
         </td>

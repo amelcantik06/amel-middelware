@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\LoginController;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,14 +14,22 @@ use App\Http\Controllers\ProductController;
 Route::get('/', [ProductController::class, 'index'])
     ->name('home');
 
+Route::get('/login', [LoginController::class, 'create'])->name('login');
+Route::post('/login', [LoginController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('login.store');
+Route::post('/logout', [LoginController::class, 'destroy'])
+    ->middleware('auth')
+    ->name('logout');
+
 // 2. Route otomatis CRUD untuk Panel Pengelolaan Produk
-Route::resource('products', ProductController::class);
+Route::resource('products', ProductController::class)->middleware('admin');
 
 
 // 3. Route untuk Halaman Admin
 Route::get('/admin', function () {
-    return 'Selamat datang di Halaman Admin!';
-})->middleware('admin');
+    return redirect()->route('products.index');
+})->middleware('admin')->name('admin');
 
 
 // 4. Route untuk Halaman Kasir
