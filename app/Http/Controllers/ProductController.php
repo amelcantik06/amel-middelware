@@ -3,62 +3,89 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Category;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    // // 1. Menampilkan Semua Data
     public function index()
     {
-    $products = Product::all();
+        $query = Product::with('category')->orderBy('id', 'desc');
+        $search = request()->string('search')->trim()->toString();
+        $categoryId = request()->integer('category_id');
 
-        return view('welcome', compact('products'));
+        if ($search !== '') {
+            $query->where(function ($products) use ($search) {
+                $products->where('name', 'like', '%'.$search.'%')
+                    ->orWhere('barcode', 'like', '%'.$search.'%');
+            });
+        }
+
+        if ($categoryId > 0) {
+            $query->where('category_id', $categoryId);
+        }
+
+        $products = $query->paginate(12)->withQueryString();
+        $categories = Category::orderBy('name')->get();
+
+        if (request()->routeIs('home')) {
+            return view('welcome', compact('products'));
+        }
+
+        return view('Products.index', compact('products', 'categories', 'search', 'categoryId'));
     }
 
-    // 2. Menampilkan Form Tambah
     public function create()
     {
-        return view('products.create');
+        return view('Products.create', ['categories' => Category::orderBy('name')->get()]);
     }
 
-    // 3. Menyimpan Data Baru
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required',
-            'price' => 'required|numeric',
-            'stock' => 'required|numeric',
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'barcode' => ['nullable', 'string', 'max:100', 'unique:products,barcode'],
+            'description' => ['nullable', 'string'],
+            'price' => ['required', 'integer', 'min:0'],
+            'cost_price' => ['nullable', 'integer', 'min:0'],
+            'stock' => ['required', 'integer', 'min:0'],
         ]);
 
-        Product::create($request->all());
-        return redirect('/products')->with('success', 'Produk berhasil ditambahkan!');
+        Product::create($validated);
+
+        return redirect()->route('products.index')->with('success', 'Produk berhasil ditambahkan!');
     }
 
-    // 4. Menampilkan Form Edit
     public function edit(Product $product)
     {
-        return view('products.edit', compact('product'));
+        return view('Products.edit', [
+            'product' => $product,
+            'categories' => Category::orderBy('name')->get(),
+        ]);
     }
 
-    // 5. Memperbarui Data
     public function update(Request $request, Product $product)
     {
-        $request->validate([
-            'name' => 'required',
-            'price' => 'required|numeric',
-            'stock' => 'required|numeric',
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'barcode' => ['nullable', 'string', 'max:100', 'unique:products,barcode,'.$product->id],
+            'description' => ['nullable', 'string'],
+            'price' => ['required', 'integer', 'min:0'],
+            'cost_price' => ['nullable', 'integer', 'min:0'],
+            'stock' => ['required', 'integer', 'min:0'],
         ]);
 
-        $product->update($request->all());
-        return redirect('/products')->with('success', 'Produk berhasil diperbarui!');
+        $product->update($validated);
+
+        return redirect()->route('products.index')->with('success', 'Produk berhasil diperbarui!');
     }
 
-    // 6. Menghapus Data
     public function destroy(Product $product)
     {
         $product->delete();
-        return redirect('/products')->with('success', 'Produk berhasil dihapus!');
+
+        return redirect()->route('products.index')->with('success', 'Produk berhasil dihapus!');
     }
 }
-
-

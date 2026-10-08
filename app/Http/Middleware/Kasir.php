@@ -11,7 +11,7 @@ class Kasir
     public function handle(Request $request, Closure $next)
     {
         if (!Auth::check()) {
-            abort(403, 'Akses ditolak. Anda harus login sebagai Kasir.');
+            return redirect()->route('login');
         }
 
         if (Auth::user()->role !== 'kasir') {

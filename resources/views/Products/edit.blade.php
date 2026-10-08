@@ -1,64 +1,62 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Data Produk</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f9f9f9; }
-        .form-container { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"], input[type="number"], textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        .btn-update { background-color: #2196F3; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; }
-        .btn-back { display: inline-block; margin-bottom: 20px; color: #f44336; text-decoration: none; }
-        .error-list { background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 15px; }
-    </style>
-</head>
-<body>
+@extends('layouts.app')
 
-<div class="form-container">
-    <a href="{{ route('products.index') }}" class="btn-back">&larr; Batalkan dan Kembali</a>
-    <h2>Form Ubah Data Produk #{{ $product->id }}</h2>
+@section('title', 'Ubah produk')
+@section('section', 'Inventaris · Ubah produk')
 
-    <!-- Validasi Input Error -->
-    @if ($errors->any())
-        <div class="error-list">
-            <ul style="margin: 0; padding-left: 20px;">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
-    <form action="{{ route('products.update', $product->id) }}" method="POST">
-        @csrf
-        @method('PUT')
-        
-        <div class="form-group">
-            <label for="name">Nama Produk:</label>
-            <input type="text" id="name" name="name" value="{{ old('name', $product->name) }}" required>
-        </div>
-
-        <div class="form-group">
-            <label for="description">Deskripsi Produk (Opsional):</label>
-            <textarea id="description" name="description" rows="4">{{ old('description', $product->description) }}</textarea>
-        </div>
-
-        <div class="form-group">
-            <label for="price">Harga Jual (Rp):</label>
-            <input type="number" id="price" name="price" value="{{ old('price', $product->price) }}" required>
-        </div>
-
-        <div class="form-group">
-            <label for="stock">Stok Barang:</label>
-            <input type="number" id="stock" name="stock" value="{{ old('stock', $product->stock) }}" required>
-        </div>
-
-        <button type="submit" class="btn-update">Perbarui Data Produk</button>
-    </form>
-</div>
-
-</body>
-</html>
+@section('content')
+    <div class="page-heading">
+        <div><p class="eyebrow">Katalog toko</p><h1>Ubah produk</h1><p class="subheading">Perbarui informasi {{ $product->name }}.</p></div>
+        <a class="button secondary" href="{{ route('products.index') }}">Kembali ke inventaris</a>
+    </div>
+    <section class="card" style="max-width:780px">
+        <form action="{{ route('products.update', $product) }}" method="POST">
+            @csrf @method('PUT')
+            <div class="form-grid">
+                <div class="form-field full">
+                    <label for="name">Nama produk</label>
+                    <input id="name" name="name" value="{{ old('name', $product->name) }}" maxlength="255" required>
+                    @error('name')<span class="input-error">{{ $message }}</span>@enderror
+                </div>
+                <div class="form-field">
+                    <label for="category_id">Kategori</label>
+                    <select id="category_id" name="category_id">
+                        <option value="">Tanpa kategori</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}" @selected(old('category_id', $product->category_id) == $category->id)>{{ $category->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('category_id')<span class="input-error">{{ $message }}</span>@enderror
+                </div>
+                <div class="form-field">
+                    <label for="barcode">Barcode <span style="color:var(--muted);font-weight:400">(opsional)</span></label>
+                    <input id="barcode" name="barcode" value="{{ old('barcode', $product->barcode) }}" maxlength="100" placeholder="Pindai atau masukkan barcode">
+                    @error('barcode')<span class="input-error">{{ $message }}</span>@enderror
+                </div>
+                <div class="form-field full">
+                    <label for="description">Deskripsi <span style="color:var(--muted);font-weight:400">(opsional)</span></label>
+                    <textarea id="description" name="description" rows="4">{{ old('description', $product->description) }}</textarea>
+                    @error('description')<span class="input-error">{{ $message }}</span>@enderror
+                </div>
+                <div class="form-field">
+                    <label for="price">Harga jual (Rp)</label>
+                    <input id="price" type="number" name="price" value="{{ old('price', $product->price) }}" min="0" step="1" required>
+                    @error('price')<span class="input-error">{{ $message }}</span>@enderror
+                </div>
+                <div class="form-field">
+                    <label for="cost_price">Harga modal (Rp) <span style="color:var(--muted);font-weight:400">(opsional)</span></label>
+                    <input id="cost_price" type="number" name="cost_price" value="{{ old('cost_price', $product->cost_price) }}" min="0" step="1" placeholder="Diisi agar laporan laba akurat">
+                    @error('cost_price')<span class="input-error">{{ $message }}</span>@enderror
+                </div>
+                <div class="form-field">
+                    <label for="stock">Stok saat ini</label>
+                    <input id="stock" type="number" name="stock" value="{{ old('stock', $product->stock) }}" min="0" step="1" required>
+                    @error('stock')<span class="input-error">{{ $message }}</span>@enderror
+                </div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:24px">
+                <a class="button secondary" href="{{ route('products.index') }}">Batal</a>
+                <button class="button" type="submit">Simpan perubahan</button>
+            </div>
+        </form>
+    </section>
+@endsection

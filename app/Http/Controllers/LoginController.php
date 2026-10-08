@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
 class LoginController extends Controller
@@ -17,6 +18,15 @@ class LoginController extends Controller
         }
 
         return view('auth.login');
+    }
+
+    public function registration(): View|RedirectResponse
+    {
+        if (Auth::check()) {
+            return $this->redirectFor(Auth::user());
+        }
+
+        return view('auth.register');
     }
 
     public function store(Request $request): RedirectResponse
@@ -37,6 +47,27 @@ class LoginController extends Controller
         return $this->redirectFor($request->user());
     }
 
+    public function register(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'role' => 'kasir',
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        return redirect()->route('kasir')->with('success', 'Akun kasir berhasil dibuat. Selamat datang!');
+    }
+
     public function destroy(Request $request): RedirectResponse
     {
         Auth::logout();
@@ -49,6 +80,10 @@ class LoginController extends Controller
 
     private function redirectFor(User $user): RedirectResponse
     {
-        return redirect()->route($user->role === 'admin' ? 'admin' : 'home');
+        return redirect()->route(match ($user->role) {
+            'admin' => 'admin',
+            'kasir' => 'kasir',
+            default => 'home',
+        });
     }
 }
